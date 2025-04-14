@@ -114,7 +114,7 @@ const initializeDatabase = async () => {
             console.log('Creating enum types if they do not exist...');
             await sequelize.query(`
                 DO $$ BEGIN
-                    CREATE TYPE IF NOT EXISTS "public"."enum_categories_type" AS ENUM ('expense', 'income');
+                    CREATE TYPE "public"."enum_categories_type" AS ENUM ('expense', 'income');
                 EXCEPTION
                     WHEN duplicate_object THEN null;
                 END $$;
