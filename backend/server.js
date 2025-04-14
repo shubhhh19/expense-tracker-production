@@ -10,6 +10,7 @@ console.log('Environment:', process.env.NODE_ENV);
 console.log('Port:', process.env.PORT);
 console.log('Database URL exists:', !!process.env.DATABASE_URL);
 console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
+console.log('CORS_ORIGIN:', process.env.CORS_ORIGIN);
 
 const sequelize = require('./config/database');
 
@@ -36,7 +37,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://bestestexpensetracker.netlify.app', process.env.FRONTEND_URL] 
+    ? [process.env.CORS_ORIGIN].filter(Boolean) 
     : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001', 'http://localhost:5001'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
