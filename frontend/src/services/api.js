@@ -2,6 +2,8 @@ import axios from 'axios';
 
 const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
+console.log('API baseURL:', baseURL); // Log the API URL for debugging
+
 const api = axios.create({
     baseURL,
     withCredentials: true,
@@ -30,6 +32,8 @@ api.interceptors.response.use(
         return response;
     },
     async (error) => {
+        console.error('API Error:', error.response?.data || error.message);
+        
         const originalRequest = error.config;
         
         // Handle token expiration and refresh if needed
