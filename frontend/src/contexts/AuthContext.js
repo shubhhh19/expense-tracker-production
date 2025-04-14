@@ -32,7 +32,32 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (formData) => {
     try {
+      console.log('Attempting to register with data:', {
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        passwordLength: formData.password?.length
+      });
+      
+      // Add a debug request to check CORS
+      try {
+        const debugRes = await fetch(`${process.env.REACT_APP_API_URL}/auth/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+        const debugData = await debugRes.json();
+        console.log('Debug fetch response:', debugData);
+      } catch (debugErr) {
+        console.error('Debug fetch error:', debugErr);
+      }
+      
+      // Original request
       const res = await api.post('/auth/register', formData);
+      console.log('Registration success:', res.data);
+      
       if (res.data && res.data.token) {
         localStorage.setItem('token', res.data.token);
         api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
@@ -41,7 +66,15 @@ export const AuthProvider = ({ children }) => {
       }
       return false;
     } catch (err) {
-      console.log('Registration error:', err.response?.data);
+      console.error('Registration error:', err);
+      console.error('Error details:', {
+        response: err.response,
+        data: err.response?.data,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        headers: err.response?.headers,
+        message: err.message
+      });
       throw err;
     }
   };
