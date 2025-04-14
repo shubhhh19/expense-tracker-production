@@ -72,10 +72,11 @@ async function setupDatabase() {
             
             if (!adminUser) {
                 adminUser = await User.create({
-                    name: 'Admin User',
+                    firstName: 'Admin',
+                    lastName: 'User',
                     email: 'admin@example.com',
                     password: 'admin123', // Remember to change this in production
-                    isAdmin: true
+                    role: 'admin'
                 });
                 console.log('Admin user created.');
             }
@@ -98,4 +99,4 @@ async function setupDatabase() {
     }
 }
 
-setupDatabase(); 
+setupDatabase();
