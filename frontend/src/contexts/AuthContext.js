@@ -52,6 +52,30 @@ export const AuthProvider = ({ children }) => {
         console.log('Debug fetch response:', debugData);
       } catch (debugErr) {
         console.error('Debug fetch error:', debugErr);
+        
+        // Try with explicit URL
+        try {
+          console.log('Trying with explicit URL...');
+          const explicitRes = await fetch('https://expense-tracker-production-ap66.onrender.com/api/auth/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+          });
+          const explicitData = await explicitRes.json();
+          console.log('Explicit URL response:', explicitData);
+          
+          // If this worked, use the token from here
+          if (explicitData && explicitData.token) {
+            localStorage.setItem('token', explicitData.token);
+            api.defaults.headers.common['Authorization'] = `Bearer ${explicitData.token}`;
+            await loadUser();
+            return true;
+          }
+        } catch (explicitErr) {
+          console.error('Explicit URL error:', explicitErr);
+        }
       }
       
       // Original request
