@@ -40,9 +40,13 @@ app.use(cookieParser());
 const corsOptions = {
   origin: function(origin, callback) {
     const allowedOrigins = process.env.NODE_ENV === 'production'
-      ? [process.env.CORS_ORIGIN, 'https://bestestexpensetracker.netlify.app']
+      ? ['https://bestestexpensetracker.netlify.app', 'https://expense-tracker-production-ap66.onrender.com', 'http://localhost:3000']
       : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001', 'http://localhost:5001'];
     
+    // Allow all origins during troubleshooting
+    callback(null, true);
+    
+    /* Uncomment this for stricter CORS once working
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
@@ -52,6 +56,7 @@ const corsOptions = {
       console.log('CORS blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
+    */
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
