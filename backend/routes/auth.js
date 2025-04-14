@@ -17,17 +17,27 @@ router.post('/register', [
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('Validation errors:', errors.array());
     return res.status(400).json({ errors: errors.array() });
   }
+
+  console.log('Registration request received:', { 
+    email: req.body.email,
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    passwordLength: req.body.password?.length
+  });
 
   const { email, password, firstName, lastName } = req.body;
 
   try {
     let user = await User.findOne({ where: { email } });
     if (user) {
+      console.log('User already exists:', email);
       return res.status(400).json({ errors: [{ msg: 'User already exists' }] });
     }
 
+    console.log('Creating new user...');
     user = await User.create({
       email,
       password,
@@ -35,16 +45,24 @@ router.post('/register', [
       lastName,
       isEmailVerified: true
     });
+    console.log('User created successfully:', user.id);
 
     if (req.app.locals.createDefaultCategories) {
+      console.log('Creating default categories for user:', user.id);
       await req.app.locals.createDefaultCategories(user.id);
+      console.log('Default categories created successfully');
     }
 
     const token = user.generateAuthToken();
+    console.log('JWT token generated successfully');
 
     res.status(201).json({ token });
   } catch (err) {
-    res.status(500).json({ errors: [{ msg: 'Server error', error: err.message }] });
+    console.error('Registration error:', err);
+    res.status(500).json({ 
+      errors: [{ msg: 'Server error', error: err.message }],
+      stack: process.env.NODE_ENV === 'production' ? null : err.stack
+    });
   }
 });
 
