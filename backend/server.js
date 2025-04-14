@@ -35,14 +35,31 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.CORS_ORIGIN].filter(Boolean) 
-    : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001', 'http://localhost:5001'],
+
+// Improved CORS handling
+const corsOptions = {
+  origin: function(origin, callback) {
+    const allowedOrigins = process.env.NODE_ENV === 'production'
+      ? [process.env.CORS_ORIGIN, 'https://bestestexpensetracker.netlify.app']
+      : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001', 'http://localhost:5001'];
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
