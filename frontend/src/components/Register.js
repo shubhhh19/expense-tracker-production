@@ -44,13 +44,28 @@ function Register() {
 
     try {
       const { confirmPassword, ...registerData } = formData;
+      console.log('Submitting registration data:', {
+        email: registerData.email,
+        firstName: registerData.firstName,
+        lastName: registerData.lastName,
+        passwordLength: registerData.password?.length
+      });
+      
       const success = await register(registerData);
       if (success) {
-        toast.success('Registration successful! Redirecting to dashboard.');
+        toast.success('You are now logged in!');
         navigate('/dashboard');
       }
     } catch (error) {
-      toast.error(error.response?.data?.errors?.[0]?.msg || 'Registration failed');
+      console.error('Registration component error:', error);
+      // Error is already displayed in AuthContext with toast
+      if (error.message !== 'User already exists') {
+        toast.error(
+          error.response?.data?.errors?.[0]?.msg || 
+          error.message || 
+          'Registration failed. Please try again.'
+        );
+      }
     } finally {
       setLoading(false);
     }
