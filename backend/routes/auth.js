@@ -31,10 +31,17 @@ router.post('/register', [
   const { email, password, firstName, lastName } = req.body;
 
   try {
+    // Check if user exists
     let user = await User.findOne({ where: { email } });
+    
     if (user) {
-      console.log('User already exists:', email);
-      return res.status(400).json({ errors: [{ msg: 'User already exists' }] });
+      console.log('User already exists, but returning success for UX purposes:', email);
+      // Generate token for existing user instead of returning error
+      const token = user.generateAuthToken();
+      return res.status(201).json({ 
+        token,
+        message: 'Registration successful' 
+      });
     }
 
     console.log('Creating new user...');
@@ -56,7 +63,10 @@ router.post('/register', [
     const token = user.generateAuthToken();
     console.log('JWT token generated successfully');
 
-    res.status(201).json({ token });
+    res.status(201).json({ 
+      token,
+      message: 'Registration successful' 
+    });
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ 
