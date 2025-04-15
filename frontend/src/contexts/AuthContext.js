@@ -48,6 +48,32 @@ export const AuthProvider = ({ children }) => {
           },
           body: JSON.stringify(formData)
         });
+        
+        if (debugRes.status === 400) {
+          // Check if it's a "User already exists" error
+          const errorData = await debugRes.json();
+          console.log('Registration error response:', errorData);
+          
+          if (errorData.errors && errorData.errors[0] && errorData.errors[0].msg === 'User already exists') {
+            // Try logging in instead
+            console.log('User already exists, attempting login...');
+            const loginResult = await login({
+              email: formData.email,
+              password: formData.password
+            });
+            
+            if (loginResult) {
+              console.log('Login successful after registration attempt');
+              // Will return true from login function if successful
+              return true;
+            } else {
+              // Login failed, throw the original error
+              toast.error('This email is already registered. Please try logging in.');
+              throw new Error('User already exists');
+            }
+          }
+        }
+        
         const debugData = await debugRes.json();
         console.log('Debug fetch response:', debugData);
       } catch (debugErr) {
@@ -63,6 +89,28 @@ export const AuthProvider = ({ children }) => {
             },
             body: JSON.stringify(formData)
           });
+          
+          if (explicitRes.status === 400) {
+            // Check if it's a "User already exists" error
+            const errorData = await explicitRes.json();
+            
+            if (errorData.errors && errorData.errors[0] && errorData.errors[0].msg === 'User already exists') {
+              // Try logging in instead
+              console.log('User already exists, attempting login...');
+              const loginResult = await login({
+                email: formData.email,
+                password: formData.password
+              });
+              
+              if (loginResult) {
+                return true;
+              } else {
+                toast.error('This email is already registered. Please try logging in.');
+                throw new Error('User already exists');
+              }
+            }
+          }
+          
           const explicitData = await explicitRes.json();
           console.log('Explicit URL response:', explicitData);
           
@@ -90,15 +138,26 @@ export const AuthProvider = ({ children }) => {
       }
       return false;
     } catch (err) {
-      console.error('Registration error:', err);
-      console.error('Error details:', {
-        response: err.response,
-        data: err.response?.data,
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        headers: err.response?.headers,
-        message: err.message
-      });
+      // Check if it's a user already exists error
+      if (err.response && err.response.data && err.response.data.errors) {
+        const errors = err.response.data.errors;
+        if (errors[0] && errors[0].msg === 'User already exists') {
+          toast.error('This email is already registered. Please try logging in.');
+          console.log('User already exists error, suggesting login instead');
+        } else {
+          toast.error(errors[0]?.msg || 'Registration failed');
+        }
+      } else {
+        console.error('Registration error:', err);
+        console.error('Error details:', {
+          response: err.response,
+          data: err.response?.data,
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          headers: err.response?.headers,
+          message: err.message
+        });
+      }
       throw err;
     }
   };
